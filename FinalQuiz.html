@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Times Table Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #004ea0;
+      color: white;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: #004ea0;
+      padding: 10px;
+      text-align: center;
+    }
+
+    header img {
+      height: 300px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .screen {
+      display: none;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 10px;
+      width: 90%;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #FFC72C;
+      color: #00205B;
+      padding: 10px 20px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #exit-btn {
+      position: absolute;
+      top: 90px;
+      left: 20px;
+      background: red;
+      color: white;
+      padding: 12px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .question-box {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    #timer {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="https://www.extend.com.au/wp-content/uploads/2021/12/BGS_Logo_Vertical_Est_1888_blue_background.jpg" alt="Brighton Grammar School Logo">
+</header>
+
+<main>
+  <div id="login-screen" class="screen">
+    <h2>Login</h2>
+    <input type="text" id="name" placeholder="Name"><br>
+    <input type="text" id="surname" placeholder="Surname"><br>
+    <input type="text" id="teacher" placeholder="Teacher Name"><br>
+    <input type="text" id="class" placeholder="Class"><br>
+    <button onclick="handleLogin()">Start Quiz</button>
+  </div>
+
+  <div id="instruction-screen" class="screen">
+    <p>
+      There are 40 questions.<br>
+      You will have 4 seconds to answer each question.<br>
+      You can return to the login screen at any time but your progress will be lost.<br><br>
+      The quiz will start when you press continue.
+    </p>
+    <button onclick="startQuiz()">Continue</button>
+  </div>
+
+  <div id="quiz-screen" class="screen">
+    <button id="exit-btn" onclick="showLogin()">Exit</button>
+    <div class="question-box" id="question-box"></div>
+    <input type="number" id="answer" placeholder="Answer" autofocus><br>
+    <div id="timer">4</div>
+  </div>
+
+  <div id="result-screen" class="screen">
+    <h2>Quiz Complete</h2>
+    <p id="score"></p>
+    <button onclick="downloadCSV()">Download Results</button>
+    <button onclick="showLogin()">Return to Login</button>
+  </div>
+</main>
+
+<script>
+  const loginScreen = document.getElementById("login-screen");
+  const instructionScreen = document.getElementById("instruction-screen");
+  const quizScreen = document.getElementById("quiz-screen");
+  const resultScreen = document.getElementById("result-screen");
+
+  const questionBox = document.getElementById("question-box");
+  const timerDisplay = document.getElementById("timer");
+  const answerInput = document.getElementById("answer");
+
+  // Your exact 40 questions as objects {a,b,answer}
+  const questions = [
+    {a:3,b:11,answer:3*11},
+    {a:4,b:3,answer:4*3},
+    {a:6,b:8,answer:6*8},
+    {a:7,b:3,answer:7*3},
+    {a:8,b:9,answer:8*9},
+    {a:12,b:11,answer:12*11},
+    {a:4,b:4,answer:4*4},
+    {a:8,b:7,answer:8*7},
+    {a:9,b:4,answer:9*4},
+    {a:3,b:3,answer:3*3},
+    {a:7,b:4,answer:7*4},
+    {a:12,b:12,answer:12*12},
+    {a:5,b:3,answer:5*3},
+    {a:8,b:4,answer:8*4},
+    {a:3,b:9,answer:3*9},
+    {a:6,b:4,answer:6*4},
+    {a:7,b:7,answer:7*7},
+    {a:9,b:5,answer:9*5},
+    {a:5,b:8,answer:5*8},
+    {a:12,b:3,answer:12*3},
+    {a:9,b:11,answer:9*11},
+    {a:8,b:8,answer:8*8},
+    {a:5,b:5,answer:5*5},
+    {a:9,b:12,answer:9*12},
+    {a:6,b:7,answer:6*7},
+    {a:7,b:5,answer:7*5},
+    {a:12,b:4,answer:12*4},
+    {a:6,b:9,answer:6*9},
+    {a:7,b:12,answer:7*12},
+    {a:4,b:5,answer:4*5},
+    {a:8,b:3,answer:8*3},
+    {a:6,b:6,answer:6*6},
+    {a:3,b:6,answer:3*6},
+    {a:5,b:12,answer:5*12},
+    {a:4,b:11,answer:4*11},
+    {a:9,b:9,answer:9*9},
+    {a:12,b:6,answer:12*6},
+    {a:7,b:9,answer:7*9},
+    {a:8,b:12,answer:8*12},
+    {a:6,b:5,answer:6*5}
+  ];
+
+  let currentQuestion = 0;
+  let correct = 0;
+  let results = [];
+  let interval;
+  let timeLeft = 4;
+  const userInfo = {};
+
+  function showScreen(screenId) {
+    [loginScreen, instructionScreen, quizScreen, resultScreen].forEach(screen => {
+      screen.style.display = "none";
+    });
+    document.getElementById(screenId).style.display = "block";
+  }
+
+  function showLogin() {
+    clearInterval(interval);
+    showScreen("login-screen");
+  }
+
+  function handleLogin() {
+    userInfo.name = document.getElementById("name").value.trim();
+    userInfo.surname = document.getElementById("surname").value.trim();
+    userInfo.teacher = document.getElementById("teacher").value.trim();
+    userInfo.className = document.getElementById("class").value.trim();
+
+    if (!userInfo.name || !userInfo.surname || !userInfo.teacher || !userInfo.className) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    showScreen("instruction-screen");
+  }
+
+  function startQuiz() {
+    showScreen("quiz-screen");
+    currentQuestion = 0;
+    correct = 0;
+    results = [];
+    showQuestion();
+  }
+
+ function showQuestion() {
+  if (currentQuestion >= questions.length) {
+    endQuiz();
+    return;
+  }
+
+  const q = questions[currentQuestion];
+  questionBox.innerHTML = `
+    <div>Question ${currentQuestion + 1} / ${questions.length}</div>
+    <div style="margin-top: 30px;">${q.a} × ${q.b}</div>
+  `;
+  answerInput.value = "";
+  timeLeft = 4;
+  timerDisplay.innerText = timeLeft;
+
+  clearInterval(interval);
+  interval = setInterval(() => {
+    timeLeft--;
+    timerDisplay.innerText = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      checkAnswer();
+    }
+  }, 1000);
+
+  answerInput.onkeydown = function (e) {
+    if (e.key === "Enter") {
+      clearInterval(interval);
+      checkAnswer();
+    }
+  };
+}
+
+  function checkAnswer() {
+    const userAnswer = parseInt(answerInput.value.trim());
+    const q = questions[currentQuestion];
+    if (userAnswer === q.answer) correct++;
+    results.push({ question: `${q.a}x${q.b}`, correct: userAnswer === q.answer });
+    currentQuestion++;
+    showQuestion();
+  }
+
+  function endQuiz() {
+    showScreen("result-screen");
+    document.getElementById("score").innerText = `You got ${correct} out of ${questions.length} correct.`;
+  }
+
+  function downloadCSV() {
+    const incorrectTables = {};
+    results.forEach(r => {
+      if (!r.correct) {
+        const table = parseInt(r.question.split("x")[0]);
+        incorrectTables[table] = (incorrectTables[table] || 0) + 1;
+      }
+    });
+
+    const below80Tables = [];
+    for (let t in incorrectTables) {
+      if (incorrectTables[t] > 0.2) below80Tables.push(`${t}x`);
+    }
+
+    const row = [
+      userInfo.name,
+      userInfo.surname,
+      userInfo.teacher,
+      userInfo.className,
+      correct,
+      below80Tables.join(";")
+    ];
+
+    const csvHeader = "Name,Surname,Teacher,Class,Correct Answers,TimesTables <80%\n";
+    const csvData = csvHeader + row.join(",") + "\n";
+
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${userInfo.name}_${userInfo.surname}_results.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  window.onload = showLogin;
+</script>
+</body>
+</html>
